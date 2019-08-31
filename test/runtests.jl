@@ -5,7 +5,7 @@ using PrettyPrint
 NR = NameResolution
 
 function PrettyPrint.pprint_impl(io, v::Variable, indent, newline)
-    print(io, "Variable($(v.sym), is_mutable=$(v.is_mutable.x), is_global=$(v.is_global.x)")
+    print(io, "Variable($(v.sym), is_mutable=$(v.is_mutable.x), is_global=$(v.is_global.x))")
 end
 
 function PrettyPrint.pprint_impl(io, p::Pair, indent, newline)
@@ -26,9 +26,8 @@ function PrettyPrint.pprint_impl(io, scope::Scope, indent, newline)
 end
 
 
-@testset "NameResolution.jl" begin
-    ann = NR.top_analyzer()
-    println("""
+@testset "freevar" begin
+    println("""test case:
     function f(x)
         y = 1 + x
         g -> begin
@@ -37,14 +36,14 @@ end
         end
     end
     """)
+    ana = top_analyzer()
+    enter!(ana, :f)
+    is_local!(ana, :x)
+    enter!(ana, :x)
 
-    enter!(ann, :f)
-    is_local!(ann, :x)
-    enter!(ann, :x)
-
-    enter!(ann, :y)
-    require!(ann, :x)
-    lambda = NR.child_analyzer!(ann)
+    enter!(ana, :y)
+    require!(ana, :x)
+    lambda = NR.child_analyzer!(ana)
 
     is_local!(lambda, :g)
     enter!(lambda, :g)
@@ -53,11 +52,96 @@ end
     require!(lambda, :y)
     require!(lambda, :g)
 
-    abs_interp_on_scopes(ann, VarMap(), VarMap())
-    pprint(ann.solved.x)
+    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    print("f ")
+    pprint(ana.solved.x)
     println()
+    print("lambda ")
     pprint(lambda.solved.x)
     println()
 
-    # Write your own tests here.
+    @test lambda.solved.x.freevars[:y] === ana.solved.x.cells[:y]
+    @test lambda.solved.x.freevars[:y].is_mutable.x === true
+end
+
+
+@testset "local" begin
+    println("""test case:
+    function f(x)
+        y = 1 + x
+        g -> begin
+            local y = 2
+            y + g
+        end
+    end
+    """)
+    ana = top_analyzer()
+    enter!(ana, :f)
+    is_local!(ana, :x)
+    enter!(ana, :x)
+
+    enter!(ana, :y)
+    require!(ana, :x)
+    lambda = NR.child_analyzer!(ana)
+
+    is_local!(lambda, :g)
+    enter!(lambda, :g)
+
+    is_local!(lambda, :y)
+    enter!(lambda, :y)
+    require!(lambda, :y)
+    require!(lambda, :g)
+
+    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    print("f ")
+    pprint(ana.solved.x)
+    println()
+    print("lambda ")
+    pprint(lambda.solved.x)
+    println()
+
+    @test haskey(lambda.solved.x.bounds, :y)
+    @test lambda.solved.x.bounds[:y].is_mutable.x === false
+end
+
+
+@testset "local + mutable" begin
+    println("""test case:
+    function f(x)
+        y = 1 + x
+        g -> begin
+            local y = 2
+            y += 1
+            y + g
+        end
+    end
+    """)
+    ana = top_analyzer()
+    enter!(ana, :f)
+    is_local!(ana, :x)
+    enter!(ana, :x)
+
+    enter!(ana, :y)
+    require!(ana, :x)
+    lambda = NR.child_analyzer!(ana)
+
+    is_local!(lambda, :g)
+    enter!(lambda, :g)
+
+    is_local!(lambda, :y)
+    enter!(lambda, :y)
+    enter!(lambda, :y)
+    require!(lambda, :y)
+    require!(lambda, :g)
+
+    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    print("f ")
+    pprint(ana.solved.x)
+    println()
+    print("lambda ")
+    pprint(lambda.solved.x)
+    println()
+
+    @test haskey(lambda.solved.x.bounds, :y)
+    @test lambda.solved.x.bounds[:y].is_mutable.x === true
 end

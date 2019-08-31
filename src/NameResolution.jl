@@ -1,12 +1,11 @@
 module NameResolution
-using MLStyle
-using MLStyle.Record
 using DataStructures
 ODict = OrderedDict
 OSet = OrderedSet
 
 export Scope, Variable
-export is_global!, is_local!, enter!, require!, abs_interp_on_scopes, VarMap
+export is_global!, is_local!, enter!, require!, abs_interp_on_scopes, VarMap, run_analyzer
+export child_analyzer!, new_analyzer, top_analyzer, new_scope, is_top_analyzer
 
 include("Variable.jl")
 VarMap = ODict{Symbol, Variable}
@@ -129,8 +128,6 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
     end
 end
 
-struct Solver{Solve}
-    solve :: Solve
-end
+run_analyzer(ana :: Analyzer) = abs_interp_on_scopes(ana, VarMap(), VarMap())
 
 end # module
