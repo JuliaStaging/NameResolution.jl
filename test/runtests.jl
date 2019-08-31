@@ -22,7 +22,7 @@ function PrettyPrint.pprint_impl(io, scope::Scope, indent, newline)
    pprint(io, s_empty, indent + 2, true)
    PrettyPrint.pprint_for_seq(io, "bounds{", "}", collect(scope.bounds), indent + 2, true)
    pprint(io, s_empty, indent + 2, true)
-   PrettyPrint.pprint_for_seq(io, "globals{", "}", collect(scope.globals), indent + 2, true)
+   PrettyPrint.pprint_for_seq(io, "cells{", "}", collect(scope.cells), indent + 2, true)
 end
 
 
@@ -31,19 +31,29 @@ end
     println("""
     function f(x)
         y = 1 + x
-        g -> y + g
+        g -> begin
+            y = 2
+            y + g
+        end
     end
     """)
 
-    assign!(ann, :f)
-    assign!(ann, :x)
-    assign!(ann, :y)
-    require!(ann, :y)
+    enter!(ann, :f)
+    is_local!(ann, :x)
+    enter!(ann, :x)
+
+    enter!(ann, :y)
+    require!(ann, :x)
     lambda = NR.child_analyzer!(ann)
-    assign!(lambda, :g)
+
+    is_local!(lambda, :g)
+    enter!(lambda, :g)
+
+    enter!(lambda, :y)
     require!(lambda, :y)
-    is_global!(lambda, :y)
-    NR.resolve_scope!(ann)
+    require!(lambda, :g)
+
+    abs_interp_on_scopes(ann, VarMap(), VarMap())
     pprint(ann.solved.x)
     println()
     pprint(lambda.solved.x)
