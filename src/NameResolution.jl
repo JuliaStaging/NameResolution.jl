@@ -120,7 +120,7 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
         request_freevar!(analyzer, var)
     end
     inherited = Dict(inherited..., bounds...)
-    for child in analyzer.childs
+    for child in analyzer.children
         abs_interp_on_scopes(child, inherited, global_vars)
     end
 end

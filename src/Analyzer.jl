@@ -11,7 +11,7 @@ struct Analyzer
     globals   :: Set{Symbol}
     locals    :: Set{Symbol}
 
-    childs    :: Vector
+    children    :: Vector
     parent    :: Any
     solved    :: Ref{Scope}
 end
@@ -33,6 +33,6 @@ top_analyzer() = new_analyzer(nothing)
 
 function child_analyzer!(ana::Analyzer)::Analyzer
     child_analyzer = new_analyzer(ana)
-    push!(ana.childs, child_analyzer)
+    push!(ana.children, child_analyzer)
     child_analyzer
 end
