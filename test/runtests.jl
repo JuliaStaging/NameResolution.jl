@@ -2,30 +2,6 @@ using NameResolution
 using Test
 using PrettyPrint
 
-NR = NameResolution
-
-function PrettyPrint.pprint_impl(io, v::Variable, indent, newline)
-    print(io, "Variable($(v.sym), is_mutable=$(v.is_mutable.x), is_global=$(v.is_global.x))")
-end
-
-function PrettyPrint.pprint_impl(io, p::Pair, indent, newline)
-    pprint(io, p.first, indent, newline)
-    print(io, "=>")
-    pprint(io, p.second, indent + 2, false)
-end
-const s_empty = Symbol("")
-
-function PrettyPrint.pprint_impl(io, scope::Scope, indent, newline)
-   pprint(io, Symbol("Scope:"), indent, newline)
-   pprint(io, s_empty, indent + 2, true)
-   PrettyPrint.pprint_for_seq(io, "freevars{", "}", collect(scope.freevars), indent + 2, true)
-   pprint(io, s_empty, indent + 2, true)
-   PrettyPrint.pprint_for_seq(io, "bounds{", "}", collect(scope.bounds), indent + 2, true)
-   pprint(io, s_empty, indent + 2, true)
-   PrettyPrint.pprint_for_seq(io, "cells{", "}", collect(scope.cells), indent + 2, true)
-end
-
-
 @testset "freevar" begin
     println("""test case:
     function f(x)
@@ -43,7 +19,7 @@ end
 
     enter!(ana, :y)
     require!(ana, :x)
-    lambda = NR.child_analyzer!(ana)
+    lambda = child_analyzer!(ana)
 
     is_local!(lambda, :g)
     enter!(lambda, :g)
@@ -82,7 +58,7 @@ end
 
     enter!(ana, :y)
     require!(ana, :x)
-    lambda = NR.child_analyzer!(ana)
+    lambda = child_analyzer!(ana)
 
     is_local!(lambda, :g)
     enter!(lambda, :g)
@@ -123,7 +99,7 @@ end
 
     enter!(ana, :y)
     require!(ana, :x)
-    lambda = NR.child_analyzer!(ana)
+    lambda = child_analyzer!(ana)
 
     is_local!(lambda, :g)
     enter!(lambda, :g)

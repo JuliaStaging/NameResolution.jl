@@ -1,14 +1,11 @@
 module NameResolution
-using DataStructures
-ODict = OrderedDict
-OSet = OrderedSet
-
+using PrettyPrint
 export Scope, Variable
 export is_global!, is_local!, enter!, require!, abs_interp_on_scopes, VarMap, run_analyzer
 export child_analyzer!, new_analyzer, top_analyzer, new_scope, is_top_analyzer
 
 include("Variable.jl")
-VarMap = ODict{Symbol, Variable}
+VarMap = Dict{Symbol, Variable}
 include("Analyzer.jl")
 
 function is_global!(analyzer :: Analyzer, sym :: Symbol)
@@ -129,5 +126,6 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
 end
 
 run_analyzer(ana :: Analyzer) = abs_interp_on_scopes(ana, VarMap(), VarMap())
+include("Pretty.jl")
 
 end # module

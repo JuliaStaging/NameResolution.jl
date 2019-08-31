@@ -6,10 +6,10 @@ end
 
 # for def-use analysis
 struct Analyzer
-    entered   :: ODict{Symbol, Bool}
-    required  :: OSet{Symbol}
-    globals   :: OSet{Symbol}
-    locals    :: OSet{Symbol}
+    entered   :: Dict{Symbol, Bool}
+    required  :: Set{Symbol}
+    globals   :: Set{Symbol}
+    locals    :: Set{Symbol}
 
     childs    :: Vector
     parent    :: Any
@@ -18,10 +18,10 @@ end
 
 new_scope() = Scope(VarMap(), VarMap(), VarMap())
 new_analyzer(parent::Union{Nothing, Analyzer}) = Analyzer(
-    ODict{Symbol, Bool}(),
-    OSet{Symbol}(),
-    OSet{Symbol}(),
-    OSet{Symbol}(),
+    Dict{Symbol, Bool}(),
+    Set{Symbol}(),
+    Set{Symbol}(),
+    Set{Symbol}(),
 
     [],
     parent,
