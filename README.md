@@ -11,16 +11,16 @@ Cross-language name resolutions.
 To solve the scope of following codes,
 
 ```julia
-function f(x)
-    y = 1 + x
+function f(x) # enter f, enter x, x is local
+    y = 1 + x # enter y, require x
     g -> begin
-        y = 2
-        y + g
+      y = 2 # enter g, g is local
+      y + g # require y, require g
     end
 end
 ```
 
-we can use `NameResolution.jl` to solve the scope,
+we can use `NameResolution.jl` to achieve this,
 check [test/runtests.jl](https://github.com/thautwarm/NameResolution.jl/blob/master/test/runtests.jl)
 for more details.
 
@@ -41,7 +41,7 @@ enter!(lambda, :y)
 require!(lambda, :y)
 require!(lambda, :g)
 
-abs_interp_on_scopes(ana, VarMap(), VarMap())
+run_analyzer(ana)
 println("f ", ana.solved.x)
 println("lambda ", lambda.solved.x)
 ```
