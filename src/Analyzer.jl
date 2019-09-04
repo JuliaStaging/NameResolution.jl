@@ -1,6 +1,7 @@
 struct Scope
     bounds   :: VarMap
     freevars :: VarMap
+    parent   :: Union{Nothing, Scope}
 end
 
 # for def-use analysis
@@ -12,14 +13,14 @@ struct Analyzer
 
     children          :: Vector
     parent            :: Any
-    solved            :: Ref{Scope}
+    solved            :: Scope
     is_physical_scope :: Bool
     # decide whether to do closure conversion
     # for Julia, let-bindings need 'is_physical_scope = false',
     # while for Python, we can always have 'is_physical_scope = true'.
 end
 
-new_scope() = Scope(VarMap(), VarMap())
+new_scope(scope) = Scope(VarMap(), VarMap(), scope)
 new_analyzer(parent::Union{Nothing, Analyzer}, is_physical_scope::Bool) = Analyzer(
     Dict{Symbol, Bool}(),
     Set{Symbol}(),
@@ -28,7 +29,7 @@ new_analyzer(parent::Union{Nothing, Analyzer}, is_physical_scope::Bool) = Analyz
 
     [],
     parent,
-    new_scope(),
+    new_scope(if nothing === parent; nothing else parent.solved end),
     is_physical_scope
 )
 

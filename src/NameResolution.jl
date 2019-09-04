@@ -1,11 +1,11 @@
 module NameResolution
 using PrettyPrint
-export Scope, Variable
+export Scope, LocalVar, GlobalVar
 export is_global!, is_local!, enter!, require!, abs_interp_on_scopes, VarMap, run_analyzer
 export child_analyzer!, new_analyzer, top_analyzer, new_scope, is_top_analyzer
 
 include("Variable.jl")
-VarMap = Dict{Symbol, Variable}
+VarMap = Dict{Symbol, LocalVar}
 include("Analyzer.jl")
 
 function is_global!(analyzer :: Analyzer, sym :: Symbol)
@@ -32,8 +32,8 @@ function require!(analyzer :: Analyzer, sym::Symbol)
 end
 function require!(:: Nothing, sym::Symbol) end
 
-function request_freevar!(ana::Analyzer, var :: Variable)
-    scope = ana.solved.x
+function request_freevar!(ana::Analyzer, var :: LocalVar)
+    scope = ana.solved
     sym = var.sym
     bound = get(scope.bounds, var.sym, nothing)
     if bound === nothing
@@ -53,11 +53,10 @@ function request_freevar!(ana::Analyzer, var :: Variable)
     nothing
 end
 
-function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2) where {
-        D1 <: AbstractDict{Symbol, Variable},
-        D2 <: AbstractDict{Symbol, Variable}
-    }
-    scope    = analyzer.solved.x
+function abs_interp_on_scopes(analyzer::Analyzer, inherited::D) where {
+    D <: AbstractDict{Symbol, LocalVar}
+}
+    scope    = analyzer.solved
     freevars = scope.freevars
     bounds   = scope.bounds
 
@@ -73,12 +72,6 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
         error("syntax: variable \"$vars\" declared both local and global")
     end
 
-    for sym in globals
-        get!(global_vars, sym) do
-            global_var(sym)
-        end
-    end
-
     for (sym, assign_twice) in entered
         if sym in globals
             @goto when_marked_global
@@ -90,7 +83,6 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
             @goto when_bound
         end
         @label when_marked_global
-            global_vars[sym].is_global.x = true
             continue
         @label when_avaiable_outside
             var = inherited[sym]
@@ -103,7 +95,7 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
         @label when_bound
             var = get(bounds, sym, nothing)
             if var === nothing
-                bounds[sym] = Variable(Ref(assign_twice), Ref(false), Ref(false), sym)
+                bounds[sym] = LocalVar(Ref(assign_twice), Ref(false), sym)
             else
                 bounds[sym].is_mutable.x = true
             end
@@ -117,7 +109,7 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
             continue
         elseif haskey(inherited, sym)
             # case for free variable
-        elseif haskey(global_vars, sym) && haskey(entered, sym)
+        elseif sym in globals && haskey(entered, sym)
             error("Writing global variable $sym without specifying the scope explicitly.\n"*
                   "Try to add 'global $sym' in that scope.")
         else
@@ -132,11 +124,11 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
     end
     inherited = Dict(inherited..., bounds...)
     for child in analyzer.children
-        abs_interp_on_scopes(child, inherited, global_vars)
+        abs_interp_on_scopes(child, inherited)
     end
 end
 
-run_analyzer(ana :: Analyzer) = abs_interp_on_scopes(ana, VarMap(), VarMap())
+run_analyzer(ana :: Analyzer) = abs_interp_on_scopes(ana, VarMap())
 include("Pretty.jl")
 
 end # module

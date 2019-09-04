@@ -28,17 +28,17 @@ using PrettyPrint
     require!(lambda, :y)
     require!(lambda, :g)
 
-    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    run_analyzer(ana)
     print("f ")
-    pprint(ana.solved.x)
+    pprint(ana.solved)
     println()
     print("lambda ")
-    pprint(lambda.solved.x)
+    pprint(lambda.solved)
     println()
 
-    @test lambda.solved.x.freevars[:y] === ana.solved.x.bounds[:y]
-    @test lambda.solved.x.freevars[:y].is_mutable.x === true
-    @test lambda.solved.x.freevars[:y].is_shared.x === true
+    @test lambda.solved.freevars[:y] === ana.solved.bounds[:y]
+    @test lambda.solved.freevars[:y].is_mutable.x === true
+    @test lambda.solved.freevars[:y].is_shared.x === true
 end
 
 
@@ -69,16 +69,16 @@ end
     require!(lambda, :y)
     require!(lambda, :g)
 
-    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    run_analyzer(ana)
     print("f ")
-    pprint(ana.solved.x)
+    pprint(ana.solved)
     println()
     print("lambda ")
-    pprint(lambda.solved.x)
+    pprint(lambda.solved)
     println()
 
-    @test haskey(lambda.solved.x.bounds, :y)
-    @test lambda.solved.x.bounds[:y].is_mutable.x === false
+    @test haskey(lambda.solved.bounds, :y)
+    @test lambda.solved.bounds[:y].is_mutable.x === false
 end
 
 
@@ -111,14 +111,14 @@ end
     require!(lambda, :y)
     require!(lambda, :g)
 
-    abs_interp_on_scopes(ana, VarMap(), VarMap())
+    run_analyzer(ana)
     print("f ")
-    pprint(ana.solved.x)
+    pprint(ana.solved)
     println()
     print("lambda ")
-    pprint(lambda.solved.x)
+    pprint(lambda.solved)
     println()
 
-    @test haskey(lambda.solved.x.bounds, :y)
-    @test lambda.solved.x.bounds[:y].is_mutable.x === true
+    @test haskey(lambda.solved.bounds, :y)
+    @test lambda.solved.bounds[:y].is_mutable.x === true
 end

@@ -1,5 +1,5 @@
-function PrettyPrint.pprint_impl(io, v::Variable, indent, newline)
-    print(io, "Variable($(v.sym), is_mutable=$(v.is_mutable.x), is_global=$(v.is_global.x), is_shared=$(v.is_shared.x))")
+function PrettyPrint.pprint_impl(io, v::LocalVar, indent, newline)
+    print(io, "LocalVar($(v.sym), is_mutable=$(v.is_mutable.x), is_shared=$(v.is_shared.x))")
 end
 
 function PrettyPrint.pprint_impl(io, p::Pair, indent, newline)
