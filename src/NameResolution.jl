@@ -11,10 +11,12 @@ include("Analyzer.jl")
 function is_global!(analyzer :: Analyzer, sym :: Symbol)
     push!(analyzer.globals, sym) ;nothing
 end
+function is_global!(:: Nothing, sym :: Symbol) end
 
 function is_local!(analyzer :: Analyzer, sym :: Symbol)
     push!(analyzer.locals, sym) ;nothing
 end
+function is_local!(:: Nothing, sym :: Symbol) end
 
 function enter!(analyzer :: Analyzer, sym::Symbol)
     if haskey(analyzer.entered, sym)
@@ -23,26 +25,31 @@ function enter!(analyzer :: Analyzer, sym::Symbol)
         analyzer.entered[sym] = false # has mutating sites
     end ;nothing
 end
+function enter!(:: Nothing, sym::Symbol) end
 
 function require!(analyzer :: Analyzer, sym::Symbol)
     push!(analyzer.required, sym) ;nothing
 end
+function require!(:: Nothing, sym::Symbol) end
 
 function request_freevar!(ana::Analyzer, var :: Variable)
     scope = ana.solved.x
     sym = var.sym
     bound = get(scope.bounds, var.sym, nothing)
     if bound === nothing
-        get!(scope.freevars, sym) do
+        getter = if ana.is_physical_scope
+            var.is_shared.x = true
+            get!
+        else
+            get
+        end
+        bound = getter(scope.freevars, sym) do
             # if 'var' is in free variables,
-            # it must be a cell of parent scope.
             request_freevar(ana.parent, var)
             var
         end
     end
-    get!(scope.cells, sym) do
-        var
-    end
+    @assert bound === var
     nothing
 end
 
@@ -52,13 +59,13 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
     }
     scope    = analyzer.solved.x
     freevars = scope.freevars
-    cells    = scope.cells
     bounds   = scope.bounds
 
     entered  = analyzer.entered
     required = analyzer.required
     globals  = analyzer.globals
     locals   = analyzer.locals
+    is_physical_scope = analyzer.is_physical_scope
 
     both_local_and_global = intersect(globals, locals)
     if !isempty(both_local_and_global)
@@ -68,7 +75,7 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
 
     for sym in globals
         get!(global_vars, sym) do
-            Variable(Ref(false), Ref(true), sym)
+            global_var(sym)
         end
     end
 
@@ -88,13 +95,15 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
         @label when_avaiable_outside
             var = inherited[sym]
             var.is_mutable.x = true
-            freevars[sym] = var
+            if is_physical_scope
+                freevars[sym] = var
+            end
             request_freevar!(analyzer.parent, var)
             continue
         @label when_bound
             var = get(bounds, sym, nothing)
             if var === nothing
-                bounds[sym] = Variable(Ref(assign_twice), Ref(false), sym)
+                bounds[sym] = Variable(Ref(assign_twice), Ref(false), Ref(false), sym)
             else
                 bounds[sym].is_mutable.x = true
             end
@@ -116,7 +125,9 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D1, global_vars::D2
         end
         # is free variable
         var = inherited[sym]
-        freevars[sym] = var
+        if is_physical_scope
+            freevars[sym] = var
+        end
         request_freevar!(analyzer, var)
     end
     inherited = Dict(inherited..., bounds...)

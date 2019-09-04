@@ -1,7 +1,6 @@
 struct Scope
     bounds   :: VarMap
     freevars :: VarMap
-    cells    :: VarMap
 end
 
 # for def-use analysis
@@ -11,13 +10,17 @@ struct Analyzer
     globals   :: Set{Symbol}
     locals    :: Set{Symbol}
 
-    children    :: Vector
-    parent    :: Any
-    solved    :: Ref{Scope}
+    children          :: Vector
+    parent            :: Any
+    solved            :: Ref{Scope}
+    is_physical_scope :: Bool
+    # decide whether to do closure conversion
+    # for Julia, let-bindings need 'is_physical_scope = false',
+    # while for Python, we can always have 'is_physical_scope = true'.
 end
 
-new_scope() = Scope(VarMap(), VarMap(), VarMap())
-new_analyzer(parent::Union{Nothing, Analyzer}) = Analyzer(
+new_scope() = Scope(VarMap(), VarMap())
+new_analyzer(parent::Union{Nothing, Analyzer}, is_physical_scope::Bool) = Analyzer(
     Dict{Symbol, Bool}(),
     Set{Symbol}(),
     Set{Symbol}(),
@@ -25,14 +28,19 @@ new_analyzer(parent::Union{Nothing, Analyzer}) = Analyzer(
 
     [],
     parent,
-    new_scope()
+    new_scope(),
+    is_physical_scope
 )
 
 is_top_analyzer(ana::Analyzer) = ana.parent === nothing
-top_analyzer() = new_analyzer(nothing)
+top_analyzer() = new_analyzer(nothing, true)
 
-function child_analyzer!(ana::Analyzer)::Analyzer
-    child_analyzer = new_analyzer(ana)
+function child_analyzer!(ana::Analyzer, is_physical_scope::Bool=true)::Analyzer
+    child_analyzer = new_analyzer(ana, is_physical_scope)
     push!(ana.children, child_analyzer)
     child_analyzer
+end
+
+function child_analyzer!(ana::Nothing, is_physical_scope::Bool=true)::Analyzer
+    new_analyzer(ana, is_physical_scope)
 end

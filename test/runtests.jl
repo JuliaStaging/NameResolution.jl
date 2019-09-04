@@ -2,7 +2,7 @@ using NameResolution
 using Test
 using PrettyPrint
 
-@testset "freevar" begin
+@testset "share freevar" begin
     println("""test case:
     function f(x)
         y = 1 + x
@@ -36,8 +36,9 @@ using PrettyPrint
     pprint(lambda.solved.x)
     println()
 
-    @test lambda.solved.x.freevars[:y] === ana.solved.x.cells[:y]
+    @test lambda.solved.x.freevars[:y] === ana.solved.x.bounds[:y]
     @test lambda.solved.x.freevars[:y].is_mutable.x === true
+    @test lambda.solved.x.freevars[:y].is_shared.x === true
 end
 
 
