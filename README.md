@@ -42,8 +42,8 @@ require!(lambda, :y)
 require!(lambda, :g)
 
 run_analyzer(ana)
-println("f ", ana.solved.x)
-println("lambda ", lambda.solved.x)
+println("f ", ana.solved)
+println("lambda ", lambda.solved)
 ```
 
 outputs:
@@ -52,23 +52,40 @@ outputs:
 julia> println("f ", ana.solved.x)
 f Scope(
   bounds={
-    f=>Variable(f, is_mutable=false, is_global=false, is_shared=false),
-    y=>Variable(y, is_mutable=true, is_global=false, is_shared=true),
-    x=>Variable(x, is_mutable=false, is_global=false, is_shared=false),
+    f=>LocalVar(f, is_mutable=false, is_shared=false),
+
+    y=>LocalVar(y, is_mutable=true, is_shared=true),
+
+    x=>LocalVar(x, is_mutable=false, is_shared=false),
   },
   freevars={},
+  parent=nothing,
 )
+
 
 
 julia> println("lambda ", lambda.solved.x)
 lambda Scope(
   bounds={
-    g=>Variable(g, is_mutable=false, is_global=false, is_shared=false),
+    g=>LocalVar(g, is_mutable=false, is_shared=false),
   },
   freevars={
-    y=>Variable(y, is_mutable=true, is_global=false, is_shared=true),
+    y=>LocalVar(y, is_mutable=true, is_shared=true),
   },
+  parent=Scope(
+    bounds={
+      f=>LocalVar(f, is_mutable=false, is_shared=false),
+
+      y=>LocalVar(y, is_mutable=true, is_shared=true),
+
+      x=>LocalVar(x, is_mutable=false, is_shared=false),
+    },
+    freevars={},
+    parent=nothing,
+  ),
 )
+
+
 
 ```
 
