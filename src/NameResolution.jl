@@ -45,7 +45,7 @@ function request_freevar!(ana::Analyzer, var :: Variable)
         end
         bound = getter(scope.freevars, sym) do
             # if 'var' is in free variables,
-            request_freevar(ana.parent, var)
+            request_freevar!(ana.parent, var)
             var
         end
     end
