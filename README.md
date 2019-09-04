@@ -52,32 +52,27 @@ outputs:
 julia> println("f ", ana.solved.x)
 f Scope(
   bounds={
-    f=>Variable(f, is_mutable=false, is_global=false),
-    y=>Variable(y, is_mutable=true, is_global=false),
-    x=>Variable(x, is_mutable=false, is_global=false),
+    f=>Variable(f, is_mutable=false, is_global=false, is_shared=false),
+    y=>Variable(y, is_mutable=true, is_global=false, is_shared=true),
+    x=>Variable(x, is_mutable=false, is_global=false, is_shared=false),
   },
   freevars={},
-  cells={
-    y=>Variable(y, is_mutable=true, is_global=false),
-  },
 )
+
 
 julia> println("lambda ", lambda.solved.x)
 lambda Scope(
   bounds={
-    g=>Variable(g, is_mutable=false, is_global=false),
+    g=>Variable(g, is_mutable=false, is_global=false, is_shared=false),
   },
   freevars={
-    y=>Variable(y, is_mutable=true, is_global=false),
-  },
-  cells={
-    y=>Variable(y, is_mutable=true, is_global=false),
+    y=>Variable(y, is_mutable=true, is_global=false, is_shared=true),
   },
 )
 
 ```
 
-<!-- 
+<!--
 1. Transform `Symbol`s in ASTs into `Variable`s.
 
 ```julia
