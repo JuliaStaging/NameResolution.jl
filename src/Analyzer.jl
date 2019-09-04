@@ -4,6 +4,15 @@ struct Scope
     parent   :: Union{Nothing, Scope}
 end
 
+function Base.getindex(scope :: Scope, sym :: Symbol)
+    get(scope.bounds, sym) do
+    get(scope.freevars, sym) do
+    scope.parent === nothing && return sym
+    scope.parent[sym]
+    end
+    end
+end
+
 # for def-use analysis
 struct Analyzer
     entered   :: Dict{Symbol, Bool}

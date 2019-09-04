@@ -38,7 +38,7 @@ using PrettyPrint
 
     @test lambda.solved.freevars[:y] === ana.solved.bounds[:y]
     @test lambda.solved.freevars[:y].is_mutable.x === true
-    @test lambda.solved.freevars[:y].is_shared.x === true
+    @test lambda.solved[:kk] === :kk
 end
 
 
@@ -121,4 +121,5 @@ end
 
     @test haskey(lambda.solved.bounds, :y)
     @test lambda.solved.bounds[:y].is_mutable.x === true
+    @test lambda.solved[:y].is_mutable.x === true
 end
