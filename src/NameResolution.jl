@@ -68,7 +68,7 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D) where {
 
     both_local_and_global = intersect(globals, locals)
     if !isempty(both_local_and_global)
-        vars = join(map(string, both_local_and_global), ", ")
+        vars = join([string(x) for x in both_local_and_global], ", ")
         error("syntax: variable \"$vars\" declared both local and global")
     end
 
