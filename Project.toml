@@ -1,7 +1,7 @@
 name = "NameResolution"
 uuid = "71a1bf82-56d0-4bbc-8a3c-48b961074391"
 authors = ["thautwarm"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
