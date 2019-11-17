@@ -146,3 +146,11 @@ end
 
     @test haskey(shallow.solved.freevars, :x)
 end
+
+@testset "uninitialized" begin
+    ana = top_analyzer()
+    is_local!(ana, :x)
+    require!(ana, :x)
+    run_analyzer(ana)
+    @test haskey(ana.solved.bounds, :x)
+end

@@ -104,6 +104,12 @@ function abs_interp_on_scopes(analyzer::Analyzer, inherited::D) where {
         if sym in globals
             continue
         elseif sym in locals
+            var = get(bounds, sym, nothing)
+            if var === nothing
+                # uninitialized variables
+                # TODO: add facilities to analyse the uninitialized variables
+                bounds[sym] = LocalVar(Ref(false), Ref(false), sym)
+            end
             continue
         elseif haskey(inherited, sym)
             # case for free variable
