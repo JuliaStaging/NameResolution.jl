@@ -9,7 +9,7 @@ PrettyPrint = "8162dcfd-2161-5ef2-ae6c-7681170c5f98"
 
 [compat]
 DataStructures = "^0.17"
-PrettyPrint = "^0.2"
+PrettyPrint = "^0.2.0"
 julia = "1"
 
 [extras]
